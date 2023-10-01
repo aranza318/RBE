@@ -16,9 +16,7 @@ import initializePassport from "./src/midsIngreso/passport.js"
 import initializeGitHubPassport from "./src/midsIngreso/github.js";
 import passport from "passport";
 import cookieParser from "cookie-parser";
-
-import { MONGODB_CNX_STR, PORT } from "./src/config/configs.js"
-
+import { MONGODB_CNX_STR, PORT, SECRET_SESSIONS} from "./src/config/configs.js"
 
 const app = express();
 
@@ -53,7 +51,7 @@ app.use(session({
       mongoUrl: MONGODB_CNX_STR,
       collectionName:"sessions"
   }),
-  secret: "secretito",
+  secret: SECRET_SESSIONS,
   resave: false,
   saveUninitialized: false,
   cookie: {secure:false}

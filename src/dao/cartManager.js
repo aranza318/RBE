@@ -14,13 +14,9 @@ class CartManager {
   }
   //Obtiene el carrito por ID
   async getCart(id) {
-    if (this.validateId(id)) {
+   
       return (await cartModel.findOne({ _id: id }).lean()) || null;
-    } else {
-      console.log("Not found!");
-
-      return null;
-    }
+  
   }
   //Consigue todos los carritos
   async getCarts() {
@@ -87,7 +83,7 @@ class CartManager {
       return false;
     }
   }
-  //Burra un producto del carrito
+  //Borra un producto del carrito
   async deleteProductFromCart(cid, pid) {
     try {
       if (this.validateId(cid)) {
@@ -129,7 +125,7 @@ class CartManager {
   }
 
   validateId(id) {
-    return id.length === 24 ? true : false;
+    return id.lenght === 24 ? true : false;
   }
 }
 

@@ -2,16 +2,15 @@ import express from "express";
 import ProductManager from "../dao/ProductManager.js";
 import CartManager from "../dao/cartManager.js";
 
+
 const router = express.Router();
 const PM = new ProductManager();
 const CM = new CartManager()
 
 const checkSession = (req, res, next) => {
-  console.log(
-    "Verificando req.session.user en checkSession:",
-    req.session.user
-  );
+ 
   if (req.session && req.session.user) {
+    console.log("Chequeando sesion: ", req.session);
     next();
   } else {
     res.redirect("/login");
@@ -19,11 +18,7 @@ const checkSession = (req, res, next) => {
 };
 
 const checkAlreadyLoggedIn = (req, res, next) => {
-  console.log("Verificando req.session en checkAlreadyLoggedIn:", req.session);
-  console.log(
-    "Verificando req.session.user en checkAlreadyLoggedIn:",
-    req.session.user
-  );
+ 
   if (req.session && req.session.user) {
     console.log("Usuario ya autenticado, redirigiendo a /profile");
     res.redirect("/profile");
@@ -50,18 +45,27 @@ router.get("/products", async (req, res) => {
 router.get("/products/:pid", async (req, res) => {
   const pid = req.params.pid;
   const product = await PM.getProductById(pid);
-
+  if (product){
   res.render("productDetail", { product });
-
+  } else {
+    res.status(404).send({status:"error", message:"Producto no encontrado"})
+  }
 });
 
 //Acceso a cart por su ID
-router.get("/cart", async (req, res) => {
+router.get("/carts/:cid", async (req, res) => {
   const cid = req.params.cid;
   const cart = await CM.getCart(cid);
 
-  res.render("cart", { products: cart.products });
- 
+  if (cart) {
+    console.log(JSON.stringify(cart, null, 4));
+    res.render("cart", { products: cart.products });
+  } else {
+    res.status(400).send({
+      status: "error",
+      message: "Error! No se encuentra el ID de Carrito!",
+    });
+  }
 });
 
 //Acceso al formulario

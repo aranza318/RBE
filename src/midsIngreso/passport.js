@@ -12,37 +12,44 @@ const LocalStrategy = local.Strategy;
 //Estrategias de Passport
 
 const initializePassport = ()=>{
-passport.use("register", new LocalStrategy({ usernameField: 'email', passReqToCallback: true }, 
-async (req, username, password, done) => {
-        const {first_name, last_name, email, age} = req.body;
+  passport.use("register", new LocalStrategy({ passReqToCallback: true, usernameField: "email" },
+      async (req, username, password, done) => {
+        const { first_name, last_name, email, age } = req.body;
         try {
-            let user = await usersModel.findOne({email:username})
-            if (user){
-                console.log("Usuario ya registrado en nuestra base de datos");
-                return done(null, false);
-            }
-            user ={
-                first_name,
-                last_name,
-                email,
-                age,
-                password: createHash(password)
-            }
-            if (user.email == "adminCoder@coder.com" && password === "adminCod3r123") {
-                user.rol = "admin";
-              } else {
-                user.rol = "user";
-              }
-            let resultado = await usersModel.create(user);
-            console.log("Usuario registrado correctamente " + resultado);
-            if (resultado) {
-                return done (null, resultado);
-            }
+          let user = await usersModel.findOne({ email: username });
+          if (user) {
+            console.log("El usuario " + email + " ya se encuentra registrado!");
+            return done(null, false);
+          }
+          user = {
+            first_name,
+            last_name,
+            email,
+            age,
+            password: createHash(password),
+            rol
+          };
+          console.log("Rol antes de la asignación:", user.rol);
+          if (user.email == "adminCoder@coder.com" && password === "adminCod3r123") {
+            console.log("Asignando rol de admin");
+            user.rol = "admin";
+          } else {
+            console.log("Asignando rol de usuario");
+            user.rol = "user";
+          }
+          console.log("Rol después de la asignación:", user.rol);
+          let result = await usersModel.create(user);
+          console.log("Usuario después de guardar:", result);
+          if (result) {
+            return done(null, result);
+          }
         } catch (error) {
-            console.log("Error en el registro", error);
-            return done(error);
-         }
-}))
+          console.error("Error durante el proceso de registro:", error);
+          return done(error);
+        }
+      }
+    )
+  );
 
 passport.use(
     "login",

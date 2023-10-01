@@ -1,24 +1,35 @@
-import { isValidPassword } from "../midsIngreso/bcrypt.js";
+import { isValidPassword, createHash } from "../midsIngreso/bcrypt.js";
 import usersModel from "./models/user.model.js";
 
 class UserManager {
     //Agrega un nuevo usuario
-    async addUser(user) {
+    async addUser({first_name, last_name, email, age, password, rol}) {
         try {
-            if(user.email == "adminCoder@coder.com"){
-                user.rol= "admin";
+            const exists = await usersModel.findOne({email});
+            if(exists){
+                console.log("Este usuario ya existe");
+                return null;
             }
-            
-            await usersModel.create(user)
-            console.log("User added!");
-    
-            return true;
+            const hash = createHash(password); 
+           
+            const user = await usersModel.create({
+                first_name,
+                last_name,
+                email,
+                age,
+                password:hash,
+                rol
+            });
+           
+            console.log("Usuario agregado", user);
+            return user;
         } catch (error) {
-            return false;
+            console.error("Error al agregar al usuario ", error);
+            throw error;
         }
     }
     //Login
-    async login(user, pass, req) {
+    async login(user, pass) {
         try {
           const userLogged = await usersModel.findOne({ email: user });
     
@@ -26,21 +37,12 @@ class UserManager {
             const rol =
               userLogged.email === "adminCoder@coder.com" ? "admin" : "usuario";
     
-            req.session.user = {
-              id: userLogged._id,
-              email: userLogged.email,
-              first_name: userLogged.first_name,
-              last_name: userLogged.last_name,
-              rol: rol,
-            };
-    
-            const userToReturn = userLogged;
-            return userToReturn;
+            return userLogged;
           }
-          return false;
+          return null;
         } catch (error) {
           console.error("Error durante el login:", error);
-          return false;
+          throw error;
         }
       }
     //Consigue el usuario por su email
@@ -59,13 +61,13 @@ class UserManager {
       
     }
     //Restore Password
-    async restorePassword(user, pass) {
+    async restorePassword(email, hashP) {
         try {
-            const userLogged = await usersModel.updateOne({email:user}, {password:pass}) || null;
+            const userLogged = await usersModel.updateOne({email:email}, {password:hashP}) || null;
             
             if (userLogged) {
                 console.log("Password Restored!");
-                return userLogged;
+                return ({status:200, redirect:"/profile"});
             }
 
             return false;
